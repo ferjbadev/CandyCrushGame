@@ -25,10 +25,12 @@ export default function Home() {
   console.log(board);
 
   return (
-    <div >
-      {board.map((candy, index) => (
-        <div key={index} className="candy" style={{ backgroundColor: candy }}></div>
-      ))}
+    <div className="flex flex-col items-center justify-center h-screen p-8">
+      <div className="w-[560px] h-[560px] flex flex-wrap gap-2">
+        {board.map((candy, index) => (
+          <div key={index} className=" w-12 h-12" style={{ backgroundColor: candy }}></div>
+        ))}
+      </div>
     </div>
   );
 }

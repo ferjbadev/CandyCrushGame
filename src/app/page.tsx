@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 const width = 8;
-const candyColors = ["red", "blue", "green", "yellow", "orange", "purple"];
+const candyColors = ["red", "violet", "green", "yellow", "orange", "purple"];
 
 
 export default function Home() {
@@ -42,7 +42,7 @@ export default function Home() {
     }, 100);
 
     return () => clearInterval(timer);
-  }, [checkForColumnOfThree]);
+  }, [checkForColumnOfThree, board]);
 
   console.log(board);
 
@@ -50,7 +50,9 @@ export default function Home() {
     <div className="flex flex-col items-center justify-center h-screen">
       <div className="w-[560px] h-[560px] flex flex-wrap gap-2 ">
         {board.map((candy, index) => (
-          <div key={index} className=" w-14 h-14" style={{ backgroundColor: candy }}></div>
+          <div key={index} className="w-14 h-14 flex items-center justify-center text-black font-bold text-xs" style={{ backgroundColor: candy }}>
+            {candy}
+          </div>
         ))}
       </div>
     </div>

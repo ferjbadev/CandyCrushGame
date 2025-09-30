@@ -8,6 +8,8 @@ const candyColors = ["red", "violet", "green", "yellow", "orange", "purple"];
 
 export default function Home() {
   const [board, setBoard] = useState<string[]>([]);
+  const [candyBeingDraggedId, setCandyBeingDraggedId] = useState<number | null>(null);
+  const [candyBeingReplacedId, setCandyBeingReplacedId] = useState<number | null>(null);
  
   const checkForColumnOfFour = useCallback(() => {
     for (let i = 0; i < 39;  i++) {
@@ -78,9 +80,11 @@ export default function Home() {
 
   const dragStart = (e: React.DragEvent<HTMLElement>) => {
     console.log('drag start');
+    setCandyBeingDraggedId(parseInt(e.currentTarget.dataset.id!));
   }
   const dragDrop = (e: React.DragEvent<HTMLElement>) => {
     console.log('drag drop');
+    setCandyBeingReplacedId(parseInt(e.currentTarget.dataset.id!));
   }
   const dragEnd = (e: React.DragEvent<HTMLElement>) => {
     console.log('drag end');

@@ -86,29 +86,9 @@ export default function Home() {
     console.log('drag drop');
     setCandyBeingReplacedId(parseInt(e.currentTarget.dataset.id!));
   }
-  const dragEnd = () => {
-    if (candyBeingDraggedId === null || candyBeingReplacedId === null) return;
-
-    const validMoves = [
-      candyBeingDraggedId - 1,
-      candyBeingDraggedId - width,
-      candyBeingDraggedId + 1,
-      candyBeingDraggedId + width
-    ];
-
-    const validMove = validMoves.includes(candyBeingReplacedId);
-
-    if (validMove) {
-      const newBoard = [...board];
-      const candyBeingDragged = newBoard[candyBeingDraggedId];
-      newBoard[candyBeingDraggedId] = newBoard[candyBeingReplacedId];
-      newBoard[candyBeingReplacedId] = candyBeingDragged;
-      setBoard(newBoard);
-    } 
-
-    setCandyBeingDraggedId(null);
-    setCandyBeingReplacedId(null);
-  };
+  const dragEnd = (e: React.DragEvent<HTMLElement>) => {
+    console.log('drag end');
+  }
 
   const createBoard = () => {
     const board: string[] = [];
@@ -125,13 +105,12 @@ export default function Home() {
 
   useEffect(() => {
     const timer = setInterval(() => {
-      const newBoard = [...board];
       checkForColumnOfFour();
       checkForColumnOfThree();
       checkForRowOfThree();
       checkForRowOfFour();
       moveIntoSquareBelow();
-      setBoard(newBoard);
+      setBoard([...board]);
     }, 100);
 
     return () => clearInterval(timer);

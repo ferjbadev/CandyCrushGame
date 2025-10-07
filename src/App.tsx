@@ -25,6 +25,7 @@ function App() {
 
   const [candies, setCandies] = useState<{color: string}[]>([])
   const currentCandies = useRef<{color: string}[]>([])
+  const [score, setScore] = useState(0)
 
   const checkForColumnsOf = (num: number) => {
     for (let i = 0; i < (width * width - (num - 1) * width); i++) {
@@ -109,16 +110,21 @@ function App() {
   }, [])
 
   return (
-    <div className="app flex justify-center  items-center h-screen">
-      <div className="game w-[90vw] h-[90vw] bg-amber-500 sm:w-[560px] sm:h-[560px] flex flex-wrap">
-        {candies.map((candy, index) => (
-          <img 
-            key={index} 
-            src={candy.color} 
-            alt="candy" 
-            className='w-[11.25vw] h-[11.25vw] sm:w-[70px] sm:h-[70px]'
-          />
-        ))}
+    <div className="app flex justify-center items-center h-screen">
+      <div className="flex flex-col items-center gap-4">
+        <div className="game w-[90vw] h-[90vw] bg-white/50 sm:w-[560px] sm:h-[560px] flex flex-wrap rounded-lg shadow-lg">
+          {candies.map((candy, index) => (
+            <img
+              key={index}
+              src={candy.color}
+              alt="candy"
+              className='w-[11.25vw] h-[11.25vw] sm:w-[70px] sm:h-[70px]'
+            />
+          ))}
+        </div>
+        <div className="bg-white/50 p-3 rounded-lg shadow-md">
+          <h1 className="text-3xl font-bold text-slate-700">Score: {score}</h1>
+        </div>
       </div>
     </div>
   )

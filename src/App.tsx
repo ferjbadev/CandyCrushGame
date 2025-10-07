@@ -1,6 +1,6 @@
 
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import './App.css'
 import blueCandy from './images/blue-candy.png'
 import greenCandy from './images/green-candy.png'
@@ -8,7 +8,7 @@ import orangeCandy from './images/orange-candy.png'
 import purpleCandy from './images/purple-candy.png'
 import redCandy from './images/red-candy.png'
 import yellowCandy from './images/yellow-candy.png'
-// import blank from './images/blank.png'
+import blank from './images/blank.png'
 
 const width = 8
 const candyColors = [
@@ -24,8 +24,47 @@ const candyColors = [
 function App() {
 
   const [candies, setCandies] = useState<{color: string}[]>([])
+  const currentCandies = useRef<{color: string}[]>([])
 
-  console.log(candies)
+  const checkForColumnsOf = (num: number) => {
+    for (let i = 0; i < (width * width - (num - 1) * width); i++) {
+      const columns = [];
+
+      for (let j = 0; j < num; j++) {
+        columns.push(i + j * width)
+      }   
+      const decidedColor = currentCandies.current[i].color
+      const isBlank = decidedColor === blank
+
+      if(isBlank) continue;
+
+      if(columns.every(index => currentCandies.current[index].color === decidedColor)) {
+        for (let j = 0; j < columns.length; j++) {
+          currentCandies.current[columns[j]].color = blank
+        }
+      }
+     }
+  }
+
+  const checkForRows = (num: number) => {
+    for (let i = 0; i < width * width; i++) {
+      const rows = [];
+
+      for (let j = 0; j < num; j++) {
+        rows.push(i + j)
+      }   
+      const decidedColor = currentCandies.current[i].color
+      const isBlank = decidedColor === blank
+      
+      if( (width - (i % width) < num) || isBlank) continue; 
+
+      if(rows.every(index => currentCandies.current[index].color === decidedColor)) {
+        for (let j = 0; j < rows.length; j++) {
+          currentCandies.current[rows[j]].color = blank
+        }
+      }
+     }
+  }
 
   const createBoard = () => {
     const randomCandies = [];
@@ -34,10 +73,22 @@ function App() {
       randomCandies.push({color: randomColor})
     }
     setCandies(randomCandies)
+    currentCandies.current = randomCandies
   }
 
   useEffect(() => {
     createBoard()
+
+    const timer = setInterval(() => {
+      checkForColumnsOf(4)
+      checkForRows(4)
+      checkForColumnsOf(3)
+      checkForRows(3)
+      setCandies([...currentCandies.current])
+    }, 100)
+
+    return () => clearInterval(timer)
+
   }, [])
 
   return (

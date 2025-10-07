@@ -66,6 +66,22 @@ function App() {
      }
   }
 
+  const moveIntoSquare = () => {
+    for (let i = 0; i < width * width - width; i++) {
+      const isFistRow = i < width;
+      const isFirstColumn = (i % width === 0)
+      
+      if(isFistRow && currentCandies.current[i].color === blank) {
+        const randomColor = candyColors[Math.floor(Math.random() * candyColors.length)]
+        currentCandies.current[i].color = randomColor    
+      }
+      if(currentCandies.current[i + width].color === blank) {
+        currentCandies.current[i + width].color = currentCandies.current[i].color
+        currentCandies.current[i].color = blank
+      }
+     }
+  }
+
   const createBoard = () => {
     const randomCandies = [];
     for (let i = 0; i < width * width; i++) {
@@ -84,6 +100,7 @@ function App() {
       checkForRows(4)
       checkForColumnsOf(3)
       checkForRows(3)
+      moveIntoSquare()
       setCandies([...currentCandies.current])
     }, 100)
 

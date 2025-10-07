@@ -41,10 +41,17 @@ function App() {
   }, [])
 
   return (
-    <div className="grid grid-cols-3">
-      {candies.map((candy, index) => (
-        <img key={index} src={candy.color} alt="candy" />
-      ))}
+    <div className="app flex justify-center  items-center h-screen">
+      <div className="game w-[90vw] h-[90vw] bg-amber-500 sm:w-[560px] sm:h-[560px] flex flex-wrap">
+        {candies.map((candy, index) => (
+          <img 
+            key={index} 
+            src={candy.color} 
+            alt="candy" 
+            className='w-[11.25vw] h-[11.25vw] sm:w-[70px] sm:h-[70px]'
+          />
+        ))}
+      </div>
     </div>
   )
 }

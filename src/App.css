@@ -1,7 +1,19 @@
+body {
+  background-image: url('./images/background2.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+@media (min-width: 640px) {
+  body {
+    background-image: url('./images/background.png');
+  }
+}
+
 #root {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 2rem;
   text-align: center;
 }
 

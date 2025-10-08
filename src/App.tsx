@@ -78,7 +78,6 @@ function App() {
   const moveIntoSquare = () => {
     for (let i = 0; i < width * width - width; i++) {
       const isFistRow = i < width;
-      const isFirstColumn = (i % width === 0)
       
       if(isFistRow && currentCandies.current[i].color === blank) {
         const randomColor = candyColors[Math.floor(Math.random() * candyColors.length)]
@@ -99,7 +98,7 @@ function App() {
     setDraggedToReplace(e.currentTarget)
   }
 
-  const dragEnd = (e: React.DragEvent<HTMLImageElement>) => {
+  const dragEnd = () => {
     const candyDragged = dragged ? parseInt(dragged.getAttribute('data-src') || '0') : 0
     const candyDraggedToReplace = draggedToReplace ? parseInt(draggedToReplace.getAttribute('data-src') || '0') : 0
 

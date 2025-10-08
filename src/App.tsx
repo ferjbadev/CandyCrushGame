@@ -90,13 +90,28 @@ function App() {
      }
   }
 
-  const dragStart = (e: React.DragEvent<HTMLImageElement>) => {
-    setDragged(e.currentTarget)
-  }
-   
-  const dragDrop = (e: React.DragEvent<HTMLImageElement>) => {
-    setDraggedToReplace(e.currentTarget)
-  }
+  // Maneja el inicio del arrastre o toque
+  const dragStart = (e: React.DragEvent<HTMLImageElement> | React.TouchEvent<HTMLImageElement>) => {
+    const target = 'touches' in e ? document.elementFromPoint(e.touches[0].clientX, e.touches[0].clientY) as HTMLImageElement : e.currentTarget;
+    setDragged(target);
+  };
+  
+  // Maneja el soltar o terminar toque
+  const dragDrop = (e: React.DragEvent<HTMLImageElement> | React.TouchEvent<HTMLImageElement>) => {
+    e.preventDefault();
+    const target = 'touches' in e ? document.elementFromPoint(e.changedTouches[0].clientX, e.changedTouches[0].clientY) as HTMLImageElement : e.currentTarget;
+    setDraggedToReplace(target);
+  };
+  
+  // Maneja el movimiento táctil
+  const handleTouchMove = (e: React.TouchEvent<HTMLImageElement>) => {
+    e.preventDefault();
+    const touch = e.touches[0];
+    const element = document.elementFromPoint(touch.clientX, touch.clientY) as HTMLImageElement;
+    if (element && element !== dragged) {
+      dragDrop(e);
+    }
+  };
 
   const isValidMove = (from: number, to: number) => {
     // Verificar si los índices están dentro del tablero
@@ -181,12 +196,20 @@ function App() {
               data-index={index}
               data-src={candy.color}
               draggable={true}
+              // Eventos para mouse
               onDragStart={dragStart}
-              onDragOver= {e => e.preventDefault()}
+              onDragOver={e => e.preventDefault()}
               onDragEnter={e => e.preventDefault()}
               onDragLeave={e => e.preventDefault()}
               onDrop={dragDrop}
               onDragEnd={dragEnd}
+              // Eventos para pantallas táctiles
+              onTouchStart={dragStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={(e) => {
+                dragDrop(e);
+                dragEnd();
+              }}
             />
           ))}
         </div>

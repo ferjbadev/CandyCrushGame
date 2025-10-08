@@ -26,6 +26,12 @@ function App() {
   const [candies, setCandies] = useState<{color: string}[]>([])
   const currentCandies = useRef<{color: string}[]>([])
   const [score, setScore] = useState(0)
+  const [dragged, setDragged] = useState<HTMLImageElement | null>(null)
+  const [draggedToReplace, setDraggedToReplace] = useState<HTMLImageElement | null>(null)
+
+  const updateScore = (num: number) => {
+    setScore(newScore => newScore + num)
+  }
 
   const checkForColumnsOf = (num: number) => {
     for (let i = 0; i < (width * width - (num - 1) * width); i++) {
@@ -40,6 +46,7 @@ function App() {
       if(isBlank) continue;
 
       if(columns.every(index => currentCandies.current[index].color === decidedColor)) {
+        updateScore(num)
         for (let j = 0; j < columns.length; j++) {
           currentCandies.current[columns[j]].color = blank
         }
@@ -60,6 +67,7 @@ function App() {
       if( (width - (i % width) < num) || isBlank) continue; 
 
       if(rows.every(index => currentCandies.current[index].color === decidedColor)) {
+        updateScore(num)
         for (let j = 0; j < rows.length; j++) {
           currentCandies.current[rows[j]].color = blank
         }
@@ -82,6 +90,30 @@ function App() {
       }
      }
   }
+
+  const dragStart = (e: React.DragEvent<HTMLImageElement>) => {
+    setDragged(e.currentTarget)
+  }
+   
+  const dragDrop = (e: React.DragEvent<HTMLImageElement>) => {
+    setDraggedToReplace(e.currentTarget)
+  }
+
+  const dragEnd = (e: React.DragEvent<HTMLImageElement>) => {
+    const candyDragged = dragged ? parseInt(dragged.getAttribute('data-src') || '0') : 0
+    const candyDraggedToReplace = draggedToReplace ? parseInt(draggedToReplace.getAttribute('data-src') || '0') : 0
+
+    const validMoves = [
+      candyDragged - 1,
+      candyDragged - width,
+      candyDragged + 1,
+      candyDragged + width,
+    ]
+
+    const validMove = validMoves.includes(candyDraggedToReplace)
+    if(!validMove) return
+  }
+  
 
   const createBoard = () => {
     const randomCandies = [];
@@ -119,6 +151,15 @@ function App() {
               src={candy.color}
               alt="candy"
               className='w-[11.25vw] h-[11.25vw] sm:w-[70px] sm:h-[70px]'
+              data-index={index}
+              data-src={candy.color}
+              draggable={true}
+              onDragStart={dragStart}
+              onDragOver= {e => e.preventDefault()}
+              onDragEnter={e => e.preventDefault()}
+              onDragLeave={e => e.preventDefault()}
+              onDrop={dragDrop}
+              onDragEnd={dragEnd}
             />
           ))}
         </div>

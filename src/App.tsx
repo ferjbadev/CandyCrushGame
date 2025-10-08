@@ -10,7 +10,7 @@ import redCandy from './images/red-candy.png'
 import yellowCandy from './images/yellow-candy.png'
 import blank from './images/blank.png'
 
-const width = 8
+const width = 7 // Reducir el ancho del tablero para móviles
 const candyColors = [
   blueCandy,
   greenCandy,
@@ -107,8 +107,9 @@ function App() {
   const handleTouchMove = (e: React.TouchEvent<HTMLImageElement>) => {
     e.preventDefault();
     const touch = e.touches[0];
+    // Aumentar el área de detección táctil
     const element = document.elementFromPoint(touch.clientX, touch.clientY) as HTMLImageElement;
-    if (element && element !== dragged) {
+    if (element && element !== dragged && element.classList.contains('candy')) {
       dragDrop(e);
     }
   };
@@ -186,13 +187,13 @@ function App() {
   return (
     <div className="app flex justify-center items-center h-screen">
       <div className="flex flex-col items-center gap-4">
-        <div className="game w-[90vw] h-[90vw] bg-white/50 sm:w-[560px] sm:h-[560px] flex flex-wrap rounded-lg shadow-lg">
+        <div className="game w-[90vw] h-[90vw] max-h-[80vh] bg-white/50 sm:w-[500px] sm:h-[500px] flex flex-wrap rounded-lg shadow-lg">
           {candies.map((candy, index) => (
             <img
               key={index}
               src={candy.color}
               alt="candy"
-              className='w-[11.25vw] h-[11.25vw] sm:w-[70px] sm:h-[70px]'
+              className='w-[12.5vw] h-[12.5vw] min-w-[45px] min-h-[45px] sm:w-[70px] sm:h-[70px]'
               data-index={index}
               data-src={candy.color}
               draggable={true}

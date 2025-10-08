@@ -98,19 +98,47 @@ function App() {
     setDraggedToReplace(e.currentTarget)
   }
 
+  const isValidMove = (from: number, to: number) => {
+    // Verificar si los índices están dentro del tablero
+    if (to < 0 || to >= width * width) return false;
+    
+    // Verificar si es un movimiento adyacente (arriba, abajo, izquierda, derecha)
+    const rowFrom = Math.floor(from / width);
+    const colFrom = from % width;
+    const rowTo = Math.floor(to / width);
+    const colTo = to % width;
+    
+    const rowDiff = Math.abs(rowFrom - rowTo);
+    const colDiff = Math.abs(colFrom - colTo);
+    
+    // Solo permitir movimientos adyacentes
+    return (rowDiff === 1 && colDiff === 0) || (rowDiff === 0 && colDiff === 1);
+  };
+
   const dragEnd = () => {
-    const candyDragged = dragged ? parseInt(dragged.getAttribute('data-src') || '0') : 0
-    const candyDraggedToReplace = draggedToReplace ? parseInt(draggedToReplace.getAttribute('data-src') || '0') : 0
+    if (!dragged || !draggedToReplace) return;
 
-    const validMoves = [
-      candyDragged - 1,
-      candyDragged - width,
-      candyDragged + 1,
-      candyDragged + width,
-    ]
+    const candyDraggedIndex = parseInt(dragged.getAttribute('data-index') || '0');
+    const candyDraggedToReplaceIndex = parseInt(draggedToReplace.getAttribute('data-index') || '0');
 
-    const validMove = validMoves.includes(candyDraggedToReplace)
-    if(!validMove) return
+    // Verificar si el movimiento es válido
+    if (!isValidMove(candyDraggedIndex, candyDraggedToReplaceIndex)) return;
+
+    // Hacer una copia del estado actual
+    const newCandies = [...currentCandies.current];
+    
+    // Intercambiar los colores
+    const tempColor = newCandies[candyDraggedIndex].color;
+    newCandies[candyDraggedIndex].color = newCandies[candyDraggedToReplaceIndex].color;
+    newCandies[candyDraggedToReplaceIndex].color = tempColor;
+
+    // Actualizar el estado
+    currentCandies.current = newCandies;
+    setCandies([...newCandies]);
+    
+    // Limpiar las referencias
+    setDragged(null);
+    setDraggedToReplace(null);
   }
   
 

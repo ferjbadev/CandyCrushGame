@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import './App.css';
 import blueCandy from './images/blue-candy.png';
 import greenCandy from './images/green-candy.png';
@@ -20,314 +20,133 @@ const candyColors = [
   orangeCandy,
   purpleCandy,
   redCandy,
-  yellowCandy
+  yellowCandy,
 ];
 
-const App: React.FC = () => {
+const App = () => {
   const [candies, setCandies] = useState<Candy[]>([]);
-  const currentCandies = useRef<Candy[]>([]);
   const [candieDragged, setCandieDragged] = useState<HTMLDivElement | null>(null);
   const [candieToReplace, setCandieToReplace] = useState<HTMLDivElement | null>(null);
-  const [score, setScore] = useState<number>(0);
+  const [score, setScore] = useState(0);
 
-  const playSound = (id: string) => {
-    const audioElement = document.getElementById(id) as HTMLAudioElement;
-    if (audioElement) {
-      audioElement.currentTime = 0;
-      audioElement.play().catch(error => console.log('Error playing sound:', error));
-    }
-  };
-
-  const updateScore = (num: number) => {
+  const updateScore = useCallback((num: number) => {
     setScore(prevScore => prevScore + num);
-  };
+  }, []);
 
-  const animateRow = (row: number) => {
-    const elem = document.createElement('div');
-    elem.classList.add('animate');
-    elem.style.left = '0';
-    elem.style.top = `${row * 70 + 35 + 20}px`;
-    elem.style.width = '0';
-    elem.style.height = '5px';
-
-    const gameElement = document.querySelector('.game');
-    if (gameElement) {
-      gameElement.appendChild(elem);
-
-      setTimeout(() => {
-        elem.classList.add('animateRow');
-
-        setTimeout(() => {
-          elem.remove();
-        }, 100);
-      }, 100);
+  const playSound = (soundId: string) => {
+    const sound = document.getElementById(soundId) as HTMLAudioElement | null;
+    if (sound) {
+      sound.currentTime = 0;
+      sound.play().catch(error => console.error('Error playing sound:', error));
     }
   };
 
-  const animateCol = (col: number) => {
-    const elem = document.createElement('div');
-    elem.classList.add('animate');
-    elem.style.top = '0';
-    elem.style.left = `${col * 70 + 35 + 20}px`;
-    elem.style.height = '0';
-    elem.style.width = '5px';
 
-    const gameElement = document.querySelector('.game');
-    if (gameElement) {
-      gameElement.appendChild(elem);
-
-      setTimeout(() => {
-        elem.classList.add('animateCol');
-
-        setTimeout(() => {
-          elem.remove();
-        }, 100);
-      }, 100);
-    }
-  };
-
-  const setRowToBlank = (index: number) => {
-    const row = Math.floor(index / WIDTH);
-    const start = row * WIDTH;
-    const end = start + WIDTH;
-
-    for (let i = start; i < end; i++) {
-      if (i >= 0 && i < currentCandies.current.length) {
-        currentCandies.current[i] = {
-          ...currentCandies.current[i],
-          color: blank,
-          modifier: ''
-        };
-      }
-    }
-        updateScore(WIDTH)
-        animateRow(row)
-        playSound('line_blast')
-    }
-
-  const setColToBlank = (index: number): void => {
-    const col = index % WIDTH;
-    
-    for (let i = 0; i < WIDTH; i++) {
-      const currentIndex = col + i * WIDTH;
-      if (currentIndex >= 0 && currentIndex < currentCandies.current.length) {
-        currentCandies.current[currentIndex] = {
-          ...currentCandies.current[currentIndex],
-          color: blank,
-          modifier: ''
-        };
-      }
-    }
-    
-    updateScore(WIDTH);
-    animateCol(col);
-    playSound('line_blast');
-  };
-
-  const moveIntoSquareBelow = (): boolean => {
+  const moveIntoSquareBelow = useCallback(() => {
+    const newCandies = [...candies];
     let moved = false;
+    // Mueve los caramelos existentes hacia abajo
     for (let i = 0; i < (WIDTH * WIDTH - WIDTH); i++) {
-      const isFirstRow = i < WIDTH;
-
-      if (isFirstRow && currentCandies.current[i].color === blank) {
-        const randomNumber = Math.floor(Math.random() * candyColors.length);
-        currentCandies.current[i].color = candyColors[randomNumber];
-        currentCandies.current[i].modifier = '';
+      if (newCandies[i + WIDTH].color === blank) {
+        newCandies[i + WIDTH].color = newCandies[i].color;
+        newCandies[i].color = blank;
         moved = true;
       }
-
-      if ((currentCandies.current[i + WIDTH].color) === blank) {
-        currentCandies.current[i + WIDTH].color = currentCandies.current[i].color;
-        currentCandies.current[i + WIDTH].modifier = currentCandies.current[i].modifier;
-        currentCandies.current[i].color = blank;
-        currentCandies.current[i].modifier = '';
+    }
+    // Genera nuevos caramelos en la fila superior
+    for (let i = 0; i < WIDTH; i++) {
+      if (newCandies[i].color === blank) {
+        const randomColor = candyColors[Math.floor(Math.random() * candyColors.length)];
+        newCandies[i].color = randomColor;
         moved = true;
       }
+    }
+
+    if (moved) {
+      setCandies(newCandies);
     }
     return moved;
-  };
+  }, [candies]);
 
   const dragStart = (e: React.DragEvent<HTMLDivElement>) => {
     setCandieDragged(e.currentTarget);
   };
 
   const dragDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
     setCandieToReplace(e.currentTarget);
   };
 
   const dragEnd = () => {
-    if (!candieDragged || !candieToReplace) return;
-    
-    const candieDraggedIndex = parseInt(candieDragged.getAttribute('data-index') ?? '0', 10);
-    const candieToReplaceIndex = parseInt(candieToReplace.getAttribute('data-index') ?? '0', 10);
+    if (candieDragged && candieToReplace) {
+      const candieDraggedIndex = parseInt(candieDragged.getAttribute('data-index') || '-1');
+      const candieToReplaceIndex = parseInt(candieToReplace.getAttribute('data-index') || '-1');
 
-    const validMoves = [
-      candieDraggedIndex - 1,
-      candieDraggedIndex - WIDTH,
-      candieDraggedIndex + 1,
-      candieDraggedIndex + WIDTH
-    ].filter(index => index >= 0 && index < WIDTH * WIDTH);
+      const validMoves = [
+        candieDraggedIndex - 1, candieDraggedIndex - WIDTH,
+        candieDraggedIndex + 1, candieDraggedIndex + WIDTH
+      ].filter(index => index >= 0 && index < WIDTH * WIDTH);
 
-    const validMove = validMoves.includes(candieToReplaceIndex);
-    if (!validMove) return;
+      const validMove = validMoves.includes(candieToReplaceIndex);
 
-    // Check for two modified candies
-    if (currentCandies.current[candieToReplaceIndex]?.modifier && 
-        currentCandies.current[candieDraggedIndex]?.modifier) {
-      setRowToBlank(candieToReplaceIndex);
-      setColToBlank(candieToReplaceIndex);
-      setCandieDragged(null);
-      setCandieToReplace(null);
-      return;
+      if (validMove) {
+        const newCandies = [...candies];
+        const tempColor = newCandies[candieDraggedIndex].color;
+        newCandies[candieDraggedIndex].color = newCandies[candieToReplaceIndex].color;
+        newCandies[candieToReplaceIndex].color = tempColor;
+        setCandies(newCandies);
+
+      } else {
+        playSound('negative_switch');
+      }
     }
-
-    // Get attributes with null checks
-    const draggedSrc = candieDragged.getAttribute('data-src') || '';
-    const draggedModifier = candieDragged.getAttribute('data-modifier') || undefined;
-    const replaceSrc = candieToReplace.getAttribute('data-src') || '';
-    const replaceModifier = candieToReplace.getAttribute('data-modifier') || undefined;
-
-    // Create a new array to avoid direct state mutation
-    const newCandies = [...currentCandies.current];
-    
-    // Swap candies
-    newCandies[candieToReplaceIndex] = {
-      ...newCandies[candieToReplaceIndex],
-      color: draggedSrc,
-      modifier: draggedModifier || undefined
-    };
-    
-    newCandies[candieDraggedIndex] = {
-      ...newCandies[candieDraggedIndex],
-      color: replaceSrc,
-      modifier: replaceModifier || undefined
-    };
-
-    // Update the ref with the new state
-    currentCandies.current = newCandies;
-
-    // Check for matches
-    const isAColumnOfFour = checkForColumns(4, [candieToReplaceIndex, candieDraggedIndex]);
-    const isARowOfFour = checkForRows(4, [candieToReplaceIndex, candieDraggedIndex]);
-    const isAColumnOfThree = checkForColumns(3, [candieToReplaceIndex, candieDraggedIndex]);
-    const isARowOfThree = checkForRows(3, [candieToReplaceIndex, candieDraggedIndex]);
-
-    const isValidMove = isAColumnOfFour || isARowOfFour || isAColumnOfThree || isARowOfThree;
-
-    if (isValidMove) {
-      setCandies([...newCandies]);
-    } else {
-      // Revert the swap if no matches
-      const revertedCandies = [...newCandies];
-      revertedCandies[candieToReplaceIndex] = {
-        ...revertedCandies[candieToReplaceIndex],
-        color: replaceSrc,
-        modifier: replaceModifier || undefined
-      };
-      revertedCandies[candieDraggedIndex] = {
-        ...revertedCandies[candieDraggedIndex],
-        color: draggedSrc,
-        modifier: draggedModifier || undefined
-      };
-      currentCandies.current = revertedCandies;
-      playSound('negative_switch');
-    }
-
-    // Reset drag states
     setCandieDragged(null);
     setCandieToReplace(null);
-    }
+  };
 
+  const checkForColumns = useCallback((count: number) => {
+    let changed = false;
+    const newCandies = [...candies];
+    for (let i = 0; i < WIDTH * WIDTH - (WIDTH * (count - 1)); i++) {
+      const column = Array.from({ length: count }, (_, k) => i + k * WIDTH);
+      const color = newCandies[i]?.color;
+      if (!color || color === blank) continue;
+      if (column.every(index => newCandies[index] && newCandies[index].color === color)) {
+        column.forEach(index => { newCandies[index].color = blank; });
+        updateScore(count * 10);
+        playSound('match');
+        changed = true;
+      }
+    }
+    if (changed) setCandies(newCandies);
+    return changed;
+  }, [candies, updateScore]);
+
+  const checkForRows = useCallback((count: number) => {
+    let changed = false;
+    const newCandies = [...candies];
+    for (let i = 0; i < WIDTH * WIDTH; i++) {
+      if (i % WIDTH > WIDTH - count) continue;
+      const row = Array.from({ length: count }, (_, k) => i + k);
+      const color = newCandies[i]?.color;
+      if (!color || color === blank) continue;
+      if (row.every(index => newCandies[index] && newCandies[index].color === color)) {
+        row.forEach(index => { newCandies[index].color = blank; });
+        updateScore(count * 10);
+        playSound('match');
+        changed = true;
+      }
+    }
+    if (changed) setCandies(newCandies);
+    return changed;
+  }, [candies, updateScore]);
 
   const createBoard = () => {
     const randomCandies: Candy[] = [];
     for (let i = 0; i < WIDTH * WIDTH; i++) {
       const randomColor = candyColors[Math.floor(Math.random() * candyColors.length)];
-      randomCandies.push({
-        color: randomColor,
-        modifier: ''
-      });
+      randomCandies.push({ color: randomColor });
     }
     setCandies(randomCandies);
-    currentCandies.current = [...randomCandies];
-  };
-
-  const checkForColumns = (count: number, excludeIndices: number[] = []): boolean => {
-    let matched = false;
-    for (let i = 0; i < WIDTH * WIDTH - (WIDTH * (count - 1)); i++) {
-      const column: number[] = [i];
-      const color = currentCandies.current[i]?.color;
-      if (color === blank) continue;
-
-      for (let j = 1; j < count; j++) {
-        const nextIndex = i + j * WIDTH;
-        if (nextIndex >= WIDTH * WIDTH) break;
-        if (currentCandies.current[nextIndex]?.color === color) {
-          column.push(nextIndex);
-        } else {
-          break;
-        }
-      }
-
-      if (column.length >= count) {
-        const hasExcludedIndex = column.some(index => excludeIndices.includes(index));
-        if (hasExcludedIndex) return true;
-
-        column.forEach(index => {
-          currentCandies.current[index].color = blank;
-          currentCandies.current[index].modifier = '';
-        });
-        setScore(prev => prev + column.length * 10);
-        playSound('match');
-        matched = true;
-      }
-    }
-    return matched;
-  };
-
-  const checkForRows = (count: number, excludeIndices: number[] = []): boolean => {
-    let matched = false;
-    for (let i = 0; i < WIDTH * WIDTH; i++) {
-      if (i % WIDTH > WIDTH - count) continue;
-      
-      const row: number[] = [i];
-      const color = currentCandies.current[i]?.color;
-      if (color === blank) continue;
-
-      for (let j = 1; j < count; j++) {
-        const nextIndex = i + j;
-        if (Math.floor(nextIndex / WIDTH) !== Math.floor(i / WIDTH)) break;
-        if (currentCandies.current[nextIndex]?.color === color) {
-          row.push(nextIndex);
-        } else {
-          break;
-        }
-      }
-
-      if (row.length >= count) {
-        const hasExcludedIndex = row.some(index => excludeIndices.includes(index));
-        if (hasExcludedIndex) return true;
-
-        row.forEach(index => {
-          currentCandies.current[index].color = blank;
-          currentCandies.current[index].modifier = '';
-        });
-        setScore(prev => prev + row.length * 10);
-        playSound('match');
-        matched = true;
-      }
-    }
-    return matched;
-  };
-
-  const checkForMatches = (): boolean => {
-    let changed = false;
-    if (checkForColumns(4)) changed = true;
-    if (checkForRows(4)) changed = true;
-    if (checkForColumns(3)) changed = true;
-    if (checkForRows(3)) changed = true;
-    return changed;
   };
 
   useEffect(() => {
@@ -336,16 +155,14 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const timer = setInterval(() => {
-      const matchesFound = checkForMatches();
-      const moved = moveIntoSquareBelow();
-      if (matchesFound || moved) {
-        setCandies([...currentCandies.current]);
-      }
+      checkForColumns(4);
+      checkForRows(4);
+      checkForColumns(3);
+      checkForRows(3);
+      moveIntoSquareBelow();
     }, 100);
-    
     return () => clearInterval(timer);
-  }, []);
-
+  }, [checkForColumns, checkForRows, moveIntoSquareBelow]);
 
   return (
     <div className="app">
@@ -353,7 +170,7 @@ const App: React.FC = () => {
         <span>Score: </span><b>{score}</b>
       </div>
       <div className="game">
-        {candies.map(({ color, modifier = '' }, index) => (
+        {candies.map(({ color, modifier }, index) => (
           <div
             key={index}
             className={`img-container ${color !== blank && modifier ? modifier : ''}`}
@@ -368,20 +185,17 @@ const App: React.FC = () => {
             onDrop={dragDrop}
             onDragEnd={dragEnd}
           >
-            <img
-              src={color}
-              alt={`candy-${index}`}
-              draggable={false}
-            />
+            <img src={color} alt={`candy-${index}`} draggable={false} />
           </div>
         ))}
       </div>
-      {/* Audio elements for sound effects */}
-      <audio id="line_blast" src="/sounds/line_blast.mp3" preload="auto"></audio>
-      <audio id="striped_candy_created" src="/sounds/striped_candy_created.mp3" preload="auto"></audio>
-      <audio id="negative_switch" src="/sounds/negative_switch.mp3" preload="auto"></audio>
+      <audio id="line_blast" src="/sounds/line_blast.ogg" preload="auto"></audio>
+      <audio id="striped_candy_created" src="/sounds/striped_candy_created.ogg" preload="auto"></audio>
+      <audio id="negative_switch" src="/sounds/negative_switch.ogg" preload="auto"></audio>
+      <audio id="match" src="/sounds/new_game.ogg" preload="auto"></audio>
     </div>
-  )
-}
+  );
+};
 
-export default App
+export default App;
+

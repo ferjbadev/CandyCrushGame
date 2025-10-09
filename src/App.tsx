@@ -1,223 +1,385 @@
+import React, { useEffect, useRef, useState } from 'react';
+import './App.css';
+import blueCandy from './images/blue-candy.png';
+import greenCandy from './images/green-candy.png';
+import orangeCandy from './images/orange-candy.png';
+import purpleCandy from './images/purple-candy.png';
+import redCandy from './images/red-candy.png';
+import yellowCandy from './images/yellow-candy.png';
+import blank from './images/blank.png';
 
+type Candy = {
+  color: string;
+  modifier?: string;
+};
 
-import { useEffect, useRef, useState } from 'react'
-import './App.css'
-import blueCandy from './images/blue-candy.png'
-import greenCandy from './images/green-candy.png'
-import orangeCandy from './images/orange-candy.png'
-import purpleCandy from './images/purple-candy.png'
-import redCandy from './images/red-candy.png'
-import yellowCandy from './images/yellow-candy.png'
-import blank from './images/blank.png'
-
-const width = 7 // Reducir el ancho del tablero para móviles
+const WIDTH = 8;
 const candyColors = [
   blueCandy,
   greenCandy,
   orangeCandy,
   purpleCandy,
   redCandy,
-  yellowCandy,
-]
+  yellowCandy
+];
 
+const App: React.FC = () => {
+  const [candies, setCandies] = useState<Candy[]>([]);
+  const currentCandies = useRef<Candy[]>([]);
+  const [candieDragged, setCandieDragged] = useState<HTMLDivElement | null>(null);
+  const [candieToReplace, setCandieToReplace] = useState<HTMLDivElement | null>(null);
+  const [score, setScore] = useState<number>(0);
 
-function App() {
-
-  const [candies, setCandies] = useState<{color: string}[]>([])
-  const currentCandies = useRef<{color: string}[]>([])
-  const [score, setScore] = useState(0)
-  const [dragged, setDragged] = useState<HTMLImageElement | null>(null)
-  const [draggedToReplace, setDraggedToReplace] = useState<HTMLImageElement | null>(null)
-
-  const updateScore = (num: number) => {
-    setScore(newScore => newScore + num)
-  }
-
-  const checkForColumnsOf = (num: number) => {
-    for (let i = 0; i < (width * width - (num - 1) * width); i++) {
-      const columns = [];
-
-      for (let j = 0; j < num; j++) {
-        columns.push(i + j * width)
-      }   
-      const decidedColor = currentCandies.current[i].color
-      const isBlank = decidedColor === blank
-
-      if(isBlank) continue;
-
-      if(columns.every(index => currentCandies.current[index].color === decidedColor)) {
-        updateScore(num)
-        for (let j = 0; j < columns.length; j++) {
-          currentCandies.current[columns[j]].color = blank
-        }
-      }
-     }
-  }
-
-  const checkForRows = (num: number) => {
-    for (let i = 0; i < width * width; i++) {
-      const rows = [];
-
-      for (let j = 0; j < num; j++) {
-        rows.push(i + j)
-      }   
-      const decidedColor = currentCandies.current[i].color
-      const isBlank = decidedColor === blank
-      
-      if( (width - (i % width) < num) || isBlank) continue; 
-
-      if(rows.every(index => currentCandies.current[index].color === decidedColor)) {
-        updateScore(num)
-        for (let j = 0; j < rows.length; j++) {
-          currentCandies.current[rows[j]].color = blank
-        }
-      }
-     }
-  }
-
-  const moveIntoSquare = () => {
-    for (let i = 0; i < width * width - width; i++) {
-      const isFistRow = i < width;
-      
-      if(isFistRow && currentCandies.current[i].color === blank) {
-        const randomColor = candyColors[Math.floor(Math.random() * candyColors.length)]
-        currentCandies.current[i].color = randomColor    
-      }
-      if(currentCandies.current[i + width].color === blank) {
-        currentCandies.current[i + width].color = currentCandies.current[i].color
-        currentCandies.current[i].color = blank
-      }
-     }
-  }
-
-  // Maneja el inicio del arrastre o toque
-  const dragStart = (e: React.DragEvent<HTMLImageElement> | React.TouchEvent<HTMLImageElement>) => {
-    const target = 'touches' in e ? document.elementFromPoint(e.touches[0].clientX, e.touches[0].clientY) as HTMLImageElement : e.currentTarget;
-    setDragged(target);
-  };
-  
-  // Maneja el soltar o terminar toque
-  const dragDrop = (e: React.DragEvent<HTMLImageElement> | React.TouchEvent<HTMLImageElement>) => {
-    e.preventDefault();
-    const target = 'touches' in e ? document.elementFromPoint(e.changedTouches[0].clientX, e.changedTouches[0].clientY) as HTMLImageElement : e.currentTarget;
-    setDraggedToReplace(target);
-  };
-  
-  // Maneja el movimiento táctil
-  const handleTouchMove = (e: React.TouchEvent<HTMLImageElement>) => {
-    e.preventDefault();
-    const touch = e.touches[0];
-    // Aumentar el área de detección táctil
-    const element = document.elementFromPoint(touch.clientX, touch.clientY) as HTMLImageElement;
-    if (element && element !== dragged && element.classList.contains('candy')) {
-      dragDrop(e);
+  const playSound = (id: string) => {
+    const audioElement = document.getElementById(id) as HTMLAudioElement;
+    if (audioElement) {
+      audioElement.currentTime = 0;
+      audioElement.play().catch(error => console.log('Error playing sound:', error));
     }
   };
 
-  const isValidMove = (from: number, to: number) => {
-    // Verificar si los índices están dentro del tablero
-    if (to < 0 || to >= width * width) return false;
+  const updateScore = (num: number) => {
+    setScore(prevScore => prevScore + num);
+  };
+
+  const animateRow = (row: number) => {
+    const elem = document.createElement('div');
+    elem.classList.add('animate');
+    elem.style.left = '0';
+    elem.style.top = `${row * 70 + 35 + 20}px`;
+    elem.style.width = '0';
+    elem.style.height = '5px';
+
+    const gameElement = document.querySelector('.game');
+    if (gameElement) {
+      gameElement.appendChild(elem);
+
+      setTimeout(() => {
+        elem.classList.add('animateRow');
+
+        setTimeout(() => {
+          elem.remove();
+        }, 100);
+      }, 100);
+    }
+  };
+
+  const animateCol = (col: number) => {
+    const elem = document.createElement('div');
+    elem.classList.add('animate');
+    elem.style.top = '0';
+    elem.style.left = `${col * 70 + 35 + 20}px`;
+    elem.style.height = '0';
+    elem.style.width = '5px';
+
+    const gameElement = document.querySelector('.game');
+    if (gameElement) {
+      gameElement.appendChild(elem);
+
+      setTimeout(() => {
+        elem.classList.add('animateCol');
+
+        setTimeout(() => {
+          elem.remove();
+        }, 100);
+      }, 100);
+    }
+  };
+
+  const setRowToBlank = (index: number) => {
+    const row = Math.floor(index / WIDTH);
+    const start = row * WIDTH;
+    const end = start + WIDTH;
+
+    for (let i = start; i < end; i++) {
+      if (i >= 0 && i < currentCandies.current.length) {
+        currentCandies.current[i] = {
+          ...currentCandies.current[i],
+          color: blank,
+          modifier: ''
+        };
+      }
+    }
+        updateScore(WIDTH)
+        animateRow(row)
+        playSound('line_blast')
+    }
+
+  const setColToBlank = (index: number): void => {
+    const col = index % WIDTH;
     
-    // Verificar si es un movimiento adyacente (arriba, abajo, izquierda, derecha)
-    const rowFrom = Math.floor(from / width);
-    const colFrom = from % width;
-    const rowTo = Math.floor(to / width);
-    const colTo = to % width;
+    for (let i = 0; i < WIDTH; i++) {
+      const currentIndex = col + i * WIDTH;
+      if (currentIndex >= 0 && currentIndex < currentCandies.current.length) {
+        currentCandies.current[currentIndex] = {
+          ...currentCandies.current[currentIndex],
+          color: blank,
+          modifier: ''
+        };
+      }
+    }
     
-    const rowDiff = Math.abs(rowFrom - rowTo);
-    const colDiff = Math.abs(colFrom - colTo);
-    
-    // Solo permitir movimientos adyacentes
-    return (rowDiff === 1 && colDiff === 0) || (rowDiff === 0 && colDiff === 1);
+    updateScore(WIDTH);
+    animateCol(col);
+    playSound('line_blast');
+  };
+
+  const moveIntoSquareBelow = (): boolean => {
+    let moved = false;
+    for (let i = 0; i < (WIDTH * WIDTH - WIDTH); i++) {
+      const isFirstRow = i < WIDTH;
+
+      if (isFirstRow && currentCandies.current[i].color === blank) {
+        const randomNumber = Math.floor(Math.random() * candyColors.length);
+        currentCandies.current[i].color = candyColors[randomNumber];
+        currentCandies.current[i].modifier = '';
+        moved = true;
+      }
+
+      if ((currentCandies.current[i + WIDTH].color) === blank) {
+        currentCandies.current[i + WIDTH].color = currentCandies.current[i].color;
+        currentCandies.current[i + WIDTH].modifier = currentCandies.current[i].modifier;
+        currentCandies.current[i].color = blank;
+        currentCandies.current[i].modifier = '';
+        moved = true;
+      }
+    }
+    return moved;
+  };
+
+  const dragStart = (e: React.DragEvent<HTMLDivElement>) => {
+    setCandieDragged(e.currentTarget);
+  };
+
+  const dragDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setCandieToReplace(e.currentTarget);
   };
 
   const dragEnd = () => {
-    if (!dragged || !draggedToReplace) return;
+    if (!candieDragged || !candieToReplace) return;
+    
+    const candieDraggedIndex = parseInt(candieDragged.getAttribute('data-index') ?? '0', 10);
+    const candieToReplaceIndex = parseInt(candieToReplace.getAttribute('data-index') ?? '0', 10);
 
-    const candyDraggedIndex = parseInt(dragged.getAttribute('data-index') || '0');
-    const candyDraggedToReplaceIndex = parseInt(draggedToReplace.getAttribute('data-index') || '0');
+    const validMoves = [
+      candieDraggedIndex - 1,
+      candieDraggedIndex - WIDTH,
+      candieDraggedIndex + 1,
+      candieDraggedIndex + WIDTH
+    ].filter(index => index >= 0 && index < WIDTH * WIDTH);
 
-    // Verificar si el movimiento es válido
-    if (!isValidMove(candyDraggedIndex, candyDraggedToReplaceIndex)) return;
+    const validMove = validMoves.includes(candieToReplaceIndex);
+    if (!validMove) return;
 
-    // Hacer una copia del estado actual
+    // Check for two modified candies
+    if (currentCandies.current[candieToReplaceIndex]?.modifier && 
+        currentCandies.current[candieDraggedIndex]?.modifier) {
+      setRowToBlank(candieToReplaceIndex);
+      setColToBlank(candieToReplaceIndex);
+      setCandieDragged(null);
+      setCandieToReplace(null);
+      return;
+    }
+
+    // Get attributes with null checks
+    const draggedSrc = candieDragged.getAttribute('data-src') || '';
+    const draggedModifier = candieDragged.getAttribute('data-modifier') || undefined;
+    const replaceSrc = candieToReplace.getAttribute('data-src') || '';
+    const replaceModifier = candieToReplace.getAttribute('data-modifier') || undefined;
+
+    // Create a new array to avoid direct state mutation
     const newCandies = [...currentCandies.current];
     
-    // Intercambiar los colores
-    const tempColor = newCandies[candyDraggedIndex].color;
-    newCandies[candyDraggedIndex].color = newCandies[candyDraggedToReplaceIndex].color;
-    newCandies[candyDraggedToReplaceIndex].color = tempColor;
-
-    // Actualizar el estado
-    currentCandies.current = newCandies;
-    setCandies([...newCandies]);
+    // Swap candies
+    newCandies[candieToReplaceIndex] = {
+      ...newCandies[candieToReplaceIndex],
+      color: draggedSrc,
+      modifier: draggedModifier || undefined
+    };
     
-    // Limpiar las referencias
-    setDragged(null);
-    setDraggedToReplace(null);
-  }
-  
+    newCandies[candieDraggedIndex] = {
+      ...newCandies[candieDraggedIndex],
+      color: replaceSrc,
+      modifier: replaceModifier || undefined
+    };
+
+    // Update the ref with the new state
+    currentCandies.current = newCandies;
+
+    // Check for matches
+    const isAColumnOfFour = checkForColumns(4, [candieToReplaceIndex, candieDraggedIndex]);
+    const isARowOfFour = checkForRows(4, [candieToReplaceIndex, candieDraggedIndex]);
+    const isAColumnOfThree = checkForColumns(3, [candieToReplaceIndex, candieDraggedIndex]);
+    const isARowOfThree = checkForRows(3, [candieToReplaceIndex, candieDraggedIndex]);
+
+    const isValidMove = isAColumnOfFour || isARowOfFour || isAColumnOfThree || isARowOfThree;
+
+    if (isValidMove) {
+      setCandies([...newCandies]);
+    } else {
+      // Revert the swap if no matches
+      const revertedCandies = [...newCandies];
+      revertedCandies[candieToReplaceIndex] = {
+        ...revertedCandies[candieToReplaceIndex],
+        color: replaceSrc,
+        modifier: replaceModifier || undefined
+      };
+      revertedCandies[candieDraggedIndex] = {
+        ...revertedCandies[candieDraggedIndex],
+        color: draggedSrc,
+        modifier: draggedModifier || undefined
+      };
+      currentCandies.current = revertedCandies;
+      playSound('negative_switch');
+    }
+
+    // Reset drag states
+    setCandieDragged(null);
+    setCandieToReplace(null);
+    }
+
 
   const createBoard = () => {
-    const randomCandies = [];
-    for (let i = 0; i < width * width; i++) {
-      const randomColor = candyColors[Math.floor(Math.random() * candyColors.length)]
-      randomCandies.push({color: randomColor})
+    const randomCandies: Candy[] = [];
+    for (let i = 0; i < WIDTH * WIDTH; i++) {
+      const randomColor = candyColors[Math.floor(Math.random() * candyColors.length)];
+      randomCandies.push({
+        color: randomColor,
+        modifier: ''
+      });
     }
-    setCandies(randomCandies)
-    currentCandies.current = randomCandies
-  }
+    setCandies(randomCandies);
+    currentCandies.current = [...randomCandies];
+  };
+
+  const checkForColumns = (count: number, excludeIndices: number[] = []): boolean => {
+    let matched = false;
+    for (let i = 0; i < WIDTH * WIDTH - (WIDTH * (count - 1)); i++) {
+      const column: number[] = [i];
+      const color = currentCandies.current[i]?.color;
+      if (color === blank) continue;
+
+      for (let j = 1; j < count; j++) {
+        const nextIndex = i + j * WIDTH;
+        if (nextIndex >= WIDTH * WIDTH) break;
+        if (currentCandies.current[nextIndex]?.color === color) {
+          column.push(nextIndex);
+        } else {
+          break;
+        }
+      }
+
+      if (column.length >= count) {
+        const hasExcludedIndex = column.some(index => excludeIndices.includes(index));
+        if (hasExcludedIndex) return true;
+
+        column.forEach(index => {
+          currentCandies.current[index].color = blank;
+          currentCandies.current[index].modifier = '';
+        });
+        setScore(prev => prev + column.length * 10);
+        playSound('match');
+        matched = true;
+      }
+    }
+    return matched;
+  };
+
+  const checkForRows = (count: number, excludeIndices: number[] = []): boolean => {
+    let matched = false;
+    for (let i = 0; i < WIDTH * WIDTH; i++) {
+      if (i % WIDTH > WIDTH - count) continue;
+      
+      const row: number[] = [i];
+      const color = currentCandies.current[i]?.color;
+      if (color === blank) continue;
+
+      for (let j = 1; j < count; j++) {
+        const nextIndex = i + j;
+        if (Math.floor(nextIndex / WIDTH) !== Math.floor(i / WIDTH)) break;
+        if (currentCandies.current[nextIndex]?.color === color) {
+          row.push(nextIndex);
+        } else {
+          break;
+        }
+      }
+
+      if (row.length >= count) {
+        const hasExcludedIndex = row.some(index => excludeIndices.includes(index));
+        if (hasExcludedIndex) return true;
+
+        row.forEach(index => {
+          currentCandies.current[index].color = blank;
+          currentCandies.current[index].modifier = '';
+        });
+        setScore(prev => prev + row.length * 10);
+        playSound('match');
+        matched = true;
+      }
+    }
+    return matched;
+  };
+
+  const checkForMatches = (): boolean => {
+    let changed = false;
+    if (checkForColumns(4)) changed = true;
+    if (checkForRows(4)) changed = true;
+    if (checkForColumns(3)) changed = true;
+    if (checkForRows(3)) changed = true;
+    return changed;
+  };
 
   useEffect(() => {
-    createBoard()
+    createBoard();
+  }, []);
 
+  useEffect(() => {
     const timer = setInterval(() => {
-      checkForColumnsOf(4)
-      checkForRows(4)
-      checkForColumnsOf(3)
-      checkForRows(3)
-      moveIntoSquare()
-      setCandies([...currentCandies.current])
-    }, 100)
+      const matchesFound = checkForMatches();
+      const moved = moveIntoSquareBelow();
+      if (matchesFound || moved) {
+        setCandies([...currentCandies.current]);
+      }
+    }, 100);
+    
+    return () => clearInterval(timer);
+  }, []);
 
-    return () => clearInterval(timer)
-
-  }, [])
 
   return (
-    <div className="app flex justify-center items-center h-screen">
-      <div className="flex flex-col items-center gap-4">
-        <div className="game w-[90vw] h-[90vw] max-h-[80vh] bg-white/50 sm:w-[500px] sm:h-[500px] flex flex-wrap rounded-lg shadow-lg">
-          {candies.map((candy, index) => (
-            <img
-              key={index}
-              src={candy.color}
-              alt="candy"
-              className='w-[12.5vw] h-[12.5vw] min-w-[45px] min-h-[45px] sm:w-[70px] sm:h-[70px]'
-              data-index={index}
-              data-src={candy.color}
-              draggable={true}
-              // Eventos para mouse
-              onDragStart={dragStart}
-              onDragOver={e => e.preventDefault()}
-              onDragEnter={e => e.preventDefault()}
-              onDragLeave={e => e.preventDefault()}
-              onDrop={dragDrop}
-              onDragEnd={dragEnd}
-              // Eventos para pantallas táctiles
-              onTouchStart={dragStart}
-              onTouchMove={handleTouchMove}
-              onTouchEnd={(e) => {
-                dragDrop(e);
-                dragEnd();
-              }}
-            />
-          ))}
-        </div>
-        <div className="bg-white/50 p-3 rounded-lg shadow-md">
-          <h1 className="text-3xl font-bold text-slate-700">Score: {score}</h1>
-        </div>
+    <div className="app">
+      <div className="score-board">
+        <span>Score: </span><b>{score}</b>
       </div>
+      <div className="game">
+        {candies.map(({ color, modifier = '' }, index) => (
+          <div
+            key={index}
+            className={`img-container ${color !== blank && modifier ? modifier : ''}`}
+            data-src={color}
+            data-index={index}
+            data-modifier={modifier}
+            draggable={true}
+            onDragStart={dragStart}
+            onDragOver={(e) => e.preventDefault()}
+            onDragEnter={(e) => e.preventDefault()}
+            onDragLeave={(e) => e.preventDefault()}
+            onDrop={dragDrop}
+            onDragEnd={dragEnd}
+          >
+            <img
+              src={color}
+              alt={`candy-${index}`}
+              draggable={false}
+            />
+          </div>
+        ))}
+      </div>
+      {/* Audio elements for sound effects */}
+      <audio id="line_blast" src="/sounds/line_blast.mp3" preload="auto"></audio>
+      <audio id="striped_candy_created" src="/sounds/striped_candy_created.mp3" preload="auto"></audio>
+      <audio id="negative_switch" src="/sounds/negative_switch.mp3" preload="auto"></audio>
     </div>
   )
 }

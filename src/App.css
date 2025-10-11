@@ -1,3 +1,5 @@
+
+
 body {
   background-image: url('./images/background.png');
   background-repeat: no-repeat;
@@ -103,4 +105,39 @@ body {
 
 .game .animate.animateCol{
   height: 100% !important;
+}
+
+/* StartScreen.css */
+.start-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: linear-gradient(to bottom, #f472b6, #9333ea); 
+  color: white;
+  text-align: center;
+}
+
+.start-screen h1 {
+  font-size: 3rem; /* text-5xl ~48px */
+  font-weight: bold;
+  margin-bottom: 2rem;
+}
+
+.start-screen button {
+  padding: 0.75rem 1.5rem; /* px-6 py-3 */
+  font-size: 1.25rem; /* text-xl */
+  background-color: white;
+  color: #6b21a8; /* text-purple-700 */
+  font-weight: 600;
+  border: none;
+  border-radius: 1rem; /* rounded-2xl */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25); /* shadow-lg */
+  cursor: pointer;
+  transition: transform 0.2s ease-in-out;
+}
+
+.start-screen button:hover {
+  transform: scale(1.05);
 }

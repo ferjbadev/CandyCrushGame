@@ -8,6 +8,7 @@ import redCandy from "./images/red-candy.png";
 import yellowCandy from "./images/yellow-candy.png";
 import blank from "./images/blank.png";
 import HighScoresModal from "./HighScores";
+import { useHighScoresStore } from "./useHighScoresStore";
 
 type Candy = {
   color: string;
@@ -17,13 +18,16 @@ type Candy = {
 const WIDTH = 8;
 const candyColors = [blueCandy, greenCandy, orangeCandy, purpleCandy, redCandy, yellowCandy];
 
-const App = () => {
+const Game: React.FC = () => {
   const [candies, setCandies] = useState<Candy[]>([]);
   const [candieDragged, setCandieDragged] = useState<HTMLDivElement | null>(null);
   const [candieToReplace, setCandieToReplace] = useState<HTMLDivElement | null>(null);
   const [score, setScore] = useState(0);
+  const [highScoresOpen, setHighScoresOpen] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(180); // 3 minutos
+  const [gameOver, setGameOver] = useState(false);
 
-  const [highScoresOpen, setHighScoresOpen] = useState(false); // estado para modal
+  const { addScore } = useHighScoresStore();
 
   const updateScore = useCallback((num: number) => setScore(prev => prev + num), []);
 
@@ -58,7 +62,7 @@ const App = () => {
     return moved;
   }, [candies]);
 
-  // Funciones drag...
+  // Drag functions
   const dragStart = (e: React.DragEvent<HTMLDivElement>) => setCandieDragged(e.currentTarget);
   const dragDrop = (e: React.DragEvent<HTMLDivElement>) => setCandieToReplace(e.currentTarget);
 
@@ -84,7 +88,7 @@ const App = () => {
     setCandieToReplace(null);
   };
 
-  // Check rows y columnas...
+  // Check rows & columns
   const checkForColumns = useCallback(
     (count: number) => {
       let changed = false;
@@ -137,6 +141,7 @@ const App = () => {
   };
 
   useEffect(() => createBoard(), []);
+
   useEffect(() => {
     const timer = setInterval(() => {
       checkForColumns(4);
@@ -148,22 +153,40 @@ const App = () => {
     return () => clearInterval(timer);
   }, [checkForColumns, checkForRows, moveIntoSquareBelow]);
 
+  // Timer de juego
+  useEffect(() => {
+    if (!gameOver && timeLeft > 0) {
+      const interval = setInterval(() => setTimeLeft(prev => prev - 1), 1000);
+      return () => clearInterval(interval);
+    } else if (timeLeft <= 0 && !gameOver) {
+      const playerName = prompt("Time's up! Enter your name for High Scores") || "Player";
+      addScore(playerName, score);
+      setGameOver(true);
+    }
+  }, [timeLeft, gameOver, score, addScore]);
+
+  const formatTime = (seconds: number) => {
+    const min = Math.floor(seconds / 60);
+    const sec = seconds % 60;
+    return `${min.toString().padStart(2, "0")}:${sec.toString().padStart(2, "0")}`;
+  };
+
   return (
     <div className="app">
+      {/* Score y Timer */}
       <div className="score-board">
         <span>Score: </span>
         <b>{score}</b>
+        <span style={{ marginLeft: "20px" }}>Time: {formatTime(timeLeft)}</span>
       </div>
 
-      {/* BOTÓN DE HIGH SCORES */}
-      <button
-        className="high-scores-btn"
-        onClick={() => setHighScoresOpen(true)}
-      >
+      {/* Botón High Scores */}
+      <button className="high-scores-btn" onClick={() => setHighScoresOpen(true)}>
         High Scores
       </button>
 
-      <div className="game">
+      {/* Tablero de juego */}
+      <div className="game" style={{ pointerEvents: gameOver ? "none" : "auto" }}>
         {candies.map(({ color, modifier }, index) => (
           <div
             key={index}
@@ -171,7 +194,7 @@ const App = () => {
             data-src={color}
             data-index={index}
             data-modifier={modifier}
-            draggable
+            draggable={!gameOver}
             onDragStart={dragStart}
             onDragOver={e => e.preventDefault()}
             onDragEnter={e => e.preventDefault()}
@@ -184,11 +207,10 @@ const App = () => {
         ))}
       </div>
 
-      <HighScoresModal
-        isOpen={highScoresOpen}
-        onClose={() => setHighScoresOpen(false)}
-      />
+      {/* Modal High Scores */}
+      <HighScoresModal isOpen={highScoresOpen} onClose={() => setHighScoresOpen(false)} />
 
+      {/* Sonidos */}
       <audio id="line_blast" src="/sounds/line_blast.ogg" preload="auto"></audio>
       <audio id="striped_candy_created" src="/sounds/striped_candy_created.ogg" preload="auto"></audio>
       <audio id="negative_switch" src="/sounds/negative_switch.ogg" preload="auto"></audio>
@@ -197,4 +219,4 @@ const App = () => {
   );
 };
 
-export default App;
+export default Game;

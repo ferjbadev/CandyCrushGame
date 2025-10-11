@@ -216,7 +216,7 @@ body {
   right: 20px;
   padding: 10px 20px;
   border-radius: 12px;
-  background-color: #f59e0b; /* naranja tipo Candy Crush */
+  background-color: #f59e0b; 
   color: white;
   font-weight: 600;
   cursor: pointer;
@@ -228,4 +228,17 @@ body {
 .high-scores-btn:hover {
   background-color: #d97706;
   transform: scale(1.05);
+}
+
+
+.timer {
+  font-size: 24px;
+  font-weight: bold;
+  background-color: #f59e0b; 
+  color: white;
+  padding: 10px 20px;
+  border-radius: 12px;
+  display: inline-block;
+  margin-left: 20px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.25);
 }

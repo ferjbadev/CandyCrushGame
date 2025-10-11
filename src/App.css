@@ -114,30 +114,58 @@ body {
   align-items: center;
   justify-content: center;
   height: 100vh;
-  background: linear-gradient(to bottom, #f472b6, #9333ea); 
+  background: linear-gradient(135deg, #fda4af, #f9a8d4, #a5b4fc, #fcd34d); 
+  background-size: 300% 300%;
+  animation: gradientBG 10s ease infinite;
   color: white;
   text-align: center;
+  overflow: hidden;
+}
+
+/* Animación de gradiente */
+@keyframes gradientBG {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 .start-screen h1 {
-  font-size: 3rem; /* text-5xl ~48px */
+  font-size: 3.5rem;
   font-weight: bold;
-  margin-bottom: 2rem;
+  margin-bottom: 2.5rem;
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.6),
+               0 0 18px rgba(0, 0, 0, 0.4);
+  animation: popIn 1.5s ease;
+}
+
+/* Efecto de aparición rebote */
+@keyframes popIn {
+  0% { transform: scale(0.7); opacity: 0; }
+  60% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(1); }
 }
 
 .start-screen button {
-  padding: 0.75rem 1.5rem; /* px-6 py-3 */
-  font-size: 1.25rem; /* text-xl */
-  background-color: white;
-  color: #6b21a8; /* text-purple-700 */
-  font-weight: 600;
+  padding: 1rem 2rem;
+  font-size: 1.3rem;
+  background: linear-gradient(135deg, #fcd34d, #fb923c); /* amarillo a naranja */
+  color: #fff;
+  font-weight: 700;
   border: none;
-  border-radius: 1rem; /* rounded-2xl */
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25); /* shadow-lg */
+  border-radius: 1rem;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
   cursor: pointer;
-  transition: transform 0.2s ease-in-out;
+  transition: transform 0.2s ease, box-shadow 0.3s ease;
+  animation: bounce 2s infinite;
+}
+
+/* Animación botón "rebotando" */
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
 }
 
 .start-screen button:hover {
-  transform: scale(1.05);
+  transform: scale(1.1);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.4);
 }

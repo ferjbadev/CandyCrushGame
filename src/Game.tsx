@@ -8,7 +8,9 @@ import redCandy from "./images/red-candy.png";
 import yellowCandy from "./images/yellow-candy.png";
 import blank from "./images/blank.png";
 import HighScoresModal from "./HighScores";
+import GameOverModal from "./GameOverModal";
 import { useHighScoresStore } from "./useHighScoresStore";
+import Timer from "./Timer";
 
 type Candy = {
   color: string;
@@ -24,10 +26,10 @@ const Game: React.FC = () => {
   const [candieToReplace, setCandieToReplace] = useState<HTMLDivElement | null>(null);
   const [score, setScore] = useState(0);
   const [highScoresOpen, setHighScoresOpen] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(180); // 3 minutos
   const [gameOver, setGameOver] = useState(false);
+  const [hasSavedScore, setHasSavedScore] = useState(false); // evita guardar doble
 
-  const { addScore } = useHighScoresStore();
+  const addHighScore = useHighScoresStore((state) => state.addScore);
 
   const updateScore = useCallback((num: number) => setScore(prev => prev + num), []);
 
@@ -62,7 +64,6 @@ const Game: React.FC = () => {
     return moved;
   }, [candies]);
 
-  // Drag functions
   const dragStart = (e: React.DragEvent<HTMLDivElement>) => setCandieDragged(e.currentTarget);
   const dragDrop = (e: React.DragEvent<HTMLDivElement>) => setCandieToReplace(e.currentTarget);
 
@@ -88,7 +89,6 @@ const Game: React.FC = () => {
     setCandieToReplace(null);
   };
 
-  // Check rows & columns
   const checkForColumns = useCallback(
     (count: number) => {
       let changed = false;
@@ -141,7 +141,6 @@ const Game: React.FC = () => {
   };
 
   useEffect(() => createBoard(), []);
-
   useEffect(() => {
     const timer = setInterval(() => {
       checkForColumns(4);
@@ -153,40 +152,33 @@ const Game: React.FC = () => {
     return () => clearInterval(timer);
   }, [checkForColumns, checkForRows, moveIntoSquareBelow]);
 
-  // Timer de juego
-  useEffect(() => {
-    if (!gameOver && timeLeft > 0) {
-      const interval = setInterval(() => setTimeLeft(prev => prev - 1), 1000);
-      return () => clearInterval(interval);
-    } else if (timeLeft <= 0 && !gameOver) {
-      const playerName = prompt("Time's up! Enter your name for High Scores") || "Player";
-      addScore(playerName, score);
-      setGameOver(true);
-    }
-  }, [timeLeft, gameOver, score, addScore]);
-
-  const formatTime = (seconds: number) => {
-    const min = Math.floor(seconds / 60);
-    const sec = seconds % 60;
-    return `${min.toString().padStart(2, "0")}:${sec.toString().padStart(2, "0")}`;
+  // ---- Función para reiniciar el juego ----
+  const resetGame = () => {
+    setScore(0);
+    createBoard();
+    setGameOver(false);
+    setHasSavedScore(false); // resetea flag para permitir guardar el próximo score
   };
 
   return (
     <div className="app">
-      {/* Score y Timer */}
       <div className="score-board">
         <span>Score: </span>
         <b>{score}</b>
-        <span style={{ marginLeft: "20px" }}>Time: {formatTime(timeLeft)}</span>
       </div>
 
-      {/* Botón High Scores */}
+      <Timer
+        duration={180} // 3 minutos
+        onExpire={() => setGameOver(true)}
+        gameOver={gameOver}
+      />
+
+      {/* Botón de High Scores */}
       <button className="high-scores-btn" onClick={() => setHighScoresOpen(true)}>
         High Scores
       </button>
 
-      {/* Tablero de juego */}
-      <div className="game" style={{ pointerEvents: gameOver ? "none" : "auto" }}>
+      <div className="game">
         {candies.map(({ color, modifier }, index) => (
           <div
             key={index}
@@ -194,11 +186,11 @@ const Game: React.FC = () => {
             data-src={color}
             data-index={index}
             data-modifier={modifier}
-            draggable={!gameOver}
+            draggable
             onDragStart={dragStart}
-            onDragOver={e => e.preventDefault()}
-            onDragEnter={e => e.preventDefault()}
-            onDragLeave={e => e.preventDefault()}
+            onDragOver={(e) => e.preventDefault()}
+            onDragEnter={(e) => e.preventDefault()}
+            onDragLeave={(e) => e.preventDefault()}
             onDrop={dragDrop}
             onDragEnd={dragEnd}
           >
@@ -207,8 +199,21 @@ const Game: React.FC = () => {
         ))}
       </div>
 
-      {/* Modal High Scores */}
+      {/* Modal de High Scores */}
       <HighScoresModal isOpen={highScoresOpen} onClose={() => setHighScoresOpen(false)} />
+
+      {/* Modal de Game Over */}
+      <GameOverModal
+        isOpen={gameOver}
+        score={score}
+        onSave={(name) => {
+          if (!hasSavedScore) {
+            addHighScore(name, score); // guarda score solo una vez
+            setHasSavedScore(true);
+            resetGame(); // reinicia el juego
+          }
+        }}
+      />
 
       {/* Sonidos */}
       <audio id="line_blast" src="/sounds/line_blast.ogg" preload="auto"></audio>

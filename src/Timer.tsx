@@ -1,15 +1,27 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 
 type TimerProps = {
-  timeLeft: number;
-  setTimeLeft: React.Dispatch<React.SetStateAction<number>>;
-  onTimeUp: () => void;
+  duration: number;
+  onExpire: () => void;
+  gameOver: boolean;
 };
 
-const Timer: React.FC<TimerProps> = ({ timeLeft, setTimeLeft, onTimeUp }) => {
+const Timer: React.FC<TimerProps> = ({ duration, onExpire, gameOver }) => {
+  const [timeLeft, setTimeLeft] = useState(duration);
+
   useEffect(() => {
+    if (!gameOver) {
+      setTimeLeft(duration);
+    }
+  }, [gameOver, duration]);
+
+  useEffect(() => {
+    if (gameOver) {
+      return;
+    }
+
     if (timeLeft <= 0) {
-      onTimeUp();
+      onExpire();
       return;
     }
 
@@ -18,7 +30,7 @@ const Timer: React.FC<TimerProps> = ({ timeLeft, setTimeLeft, onTimeUp }) => {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [timeLeft, setTimeLeft, onTimeUp]);
+  }, [timeLeft, onExpire, gameOver]);
 
   const formatTime = (seconds: number) => {
     const min = Math.floor(seconds / 60);

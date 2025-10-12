@@ -1,5 +1,3 @@
-
-
 body {
   background-image: url('./images/background.png');
   background-repeat: no-repeat;
@@ -93,84 +91,44 @@ body {
   border: 2px solid #fff;
 }
 
-.game .animate{
-  position: absolute;
-  transition: .1s ease-out;
-  background-color: #99cfff;
-}
-
-.game .animate.animateRow{
-  width: 100% !important;
-}
-
-.game .animate.animateCol{
-  height: 100% !important;
-}
-
-/* StartScreen.css */
+/* --- StartScreen Styles --- */
 .start-screen {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   height: 100vh;
-  background: linear-gradient(135deg, #fda4af, #f9a8d4, #a5b4fc, #fcd34d); 
-  background-size: 300% 300%;
-  animation: gradientBG 10s ease infinite;
-  color: white;
   text-align: center;
   overflow: hidden;
 }
 
-/* Animación de gradiente */
-@keyframes gradientBG {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-.start-screen h1 {
-  font-size: 3.5rem;
+.start-game-btn {
+  padding: 1.2rem 2.5rem;
+  font-size: 1.8rem;
   font-weight: bold;
-  margin-bottom: 2.5rem;
-  text-shadow: 0 0 8px rgba(255, 255, 255, 0.6),
-               0 0 18px rgba(0, 0, 0, 0.4);
-  animation: popIn 1.5s ease;
+  color: white;
+  background: linear-gradient(145deg, #ff7e5f, #feb47b);
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+  animation: pulse 2s infinite;
 }
 
-/* Efecto de aparición rebote */
-@keyframes popIn {
-  0% { transform: scale(0.7); opacity: 0; }
-  60% { transform: scale(1.2); opacity: 1; }
+.start-game-btn:hover {
+  background: linear-gradient(145deg, #feb47b, #ff7e5f);
+  box-shadow: 0 12px 20px rgba(0, 0, 0, 0.3);
+  transform: translateY(-3px);
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
   100% { transform: scale(1); }
 }
 
-.start-screen button {
-  padding: 1rem 2rem;
-  font-size: 1.3rem;
-  background: linear-gradient(135deg, #fcd34d, #fb923c); 
-  font-weight: 700;
-  border: none;
-  border-radius: 1rem;
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
-  cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.3s ease;
-  animation: bounce 2s infinite;
-}
-
-/* Animación botón "rebotando" */
-@keyframes bounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
-}
-
-.start-screen button:hover {
-  transform: scale(1.1);
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.4);
-}
-
-
-/* Fondo semitransparente */
+/* --- Modal Styles --- */
 .modal-backdrop {
   position: fixed;
   top: 0;
@@ -181,13 +139,12 @@ body {
   z-index: 1000;
 }
 
-/* Modal centrado */
 .modal {
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background-color: #fdf4f0; /* color pastel tipo Candy Crush */
+  background-color: #fdf4f0;
   border-radius: 15px;
   padding: 30px 20px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
@@ -198,93 +155,9 @@ body {
   animation: popIn 0.3s ease-out;
 }
 
-/* Animación de entrada */
 @keyframes popIn {
-  0% {
-    transform: translate(-50%, -50%) scale(0.7);
-    opacity: 0;
-  }
-  100% {
-    transform: translate(-50%, -50%) scale(1);
-    opacity: 1;
-  }
-}
-
-.high-scores-btn {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  padding: 10px 20px;
-  border-radius: 12px;
-  background-color: #f59e0b; 
-  color: white;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.25);
-  transition: all 0.2s ease;
-  z-index: 20;
-}
-
-.high-scores-btn:hover {
-  background-color: #d97706;
-  transform: scale(1.05);
-}
-
-
-.timer {
-  font-size: 24px;
-  font-weight: bold;
-  background-color: #f59e0b; 
-  color: white;
-  padding: 10px 20px;
-  border-radius: 12px;
-  display: inline-block;
-  margin-left: 20px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.25);
-}
-
-
-.play-again-btn {
-  margin-top: 20px;
-  padding: 0.75rem 1.5rem;
-  font-size: 1.25rem;
-  background-color: #f87171; 
-  color: white;
-  font-weight: 600;
-  border: none;
-  border-radius: 1rem;
-  cursor: pointer;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.25);
-  transition: transform 0.2s ease-in-out;
-}
-
-.play-again-btn:hover {
-  transform: scale(1.05);
-}
-
-
-.modal-backdrop {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0,0,0,0.5);
-  z-index: 10;
-}
-
-.modal {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background-color: #fff;
-  color: #333;
-  padding: 2rem;
-  border-radius: 1rem;
-  z-index: 20;
-  text-align: center;
-  min-width: 300px;
+  0% { transform: translate(-50%, -50%) scale(0.7); opacity: 0; }
+  100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
 }
 
 .modal input {
@@ -306,4 +179,37 @@ body {
 
 .modal button:hover {
   background-color: #d946ef;
+}
+
+/* --- Other UI Elements --- */
+.high-scores-btn {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 10px 20px;
+  border-radius: 12px;
+  background-color: #f59e0b; 
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+  transition: all 0.2s ease;
+  z-index: 20;
+}
+
+.high-scores-btn:hover {
+  background-color: #d97706;
+  transform: scale(1.05);
+}
+
+.timer {
+  font-size: 24px;
+  font-weight: bold;
+  background-color: #f59e0b; 
+  color: white;
+  padding: 10px 20px;
+  border-radius: 12px;
+  display: inline-block;
+  margin-left: 20px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.25);
 }

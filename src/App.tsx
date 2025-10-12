@@ -9,7 +9,7 @@ const App: React.FC = () => {
   return (
     <>
       {started ? (
-        <Game />
+        <Game onGoBack={() => setStarted(false)} />
       ) : (
         <StartScreen onStart={() => setStarted(true)} />
       )}

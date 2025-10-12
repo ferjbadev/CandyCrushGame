@@ -20,7 +20,11 @@ type Candy = {
 const WIDTH = 8;
 const candyColors = [blueCandy, greenCandy, orangeCandy, purpleCandy, redCandy, yellowCandy];
 
-const Game: React.FC = () => {
+type GameProps = {
+  onGoBack: () => void;
+};
+
+const Game: React.FC<GameProps> = ({ onGoBack }) => {
   const [candies, setCandies] = useState<Candy[]>([]);
   const [candieDragged, setCandieDragged] = useState<HTMLDivElement | null>(null);
   const [candieToReplace, setCandieToReplace] = useState<HTMLDivElement | null>(null);
@@ -198,6 +202,8 @@ const Game: React.FC = () => {
           </div>
         ))}
       </div>
+
+      <button onClick={onGoBack} className="back-btn">Back</button>
 
       {/* Modal de High Scores */}
       <HighScoresModal isOpen={highScoresOpen} onClose={() => setHighScoresOpen(false)} />

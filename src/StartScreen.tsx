@@ -1,5 +1,5 @@
 import React from "react";
-import fondo1 from './images/fondo1.webp'; // Importar la imagen de fondo
+import background2 from './images/background2.png';
 
 type StartScreenProps = {
   onStart: () => void;
@@ -7,13 +7,14 @@ type StartScreenProps = {
 
 const StartScreen: React.FC<StartScreenProps> = ({ onStart }) => {
   const style = {
-    backgroundImage: `url(${fondo1})`,
+    backgroundImage: `url(${background2})`,
     backgroundSize: 'cover',
     backgroundPosition: 'center',
   };
 
   return (
     <div className="start-screen" style={style}>
+      <h1 className="game-title">Sweet Clash</h1>
       <button onClick={onStart} className="start-game-btn">Start Game</button>
     </div>
   );

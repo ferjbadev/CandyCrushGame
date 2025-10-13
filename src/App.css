@@ -23,8 +23,8 @@ body {
   display: flex;
   flex-wrap: wrap;
   padding: 20px;
-  border: 2px dashed;
-  background-color: aliceblue;
+  border: 2px solid black;
+  background-color: rgba(255, 255, 255, 0.5);
   position: relative;
 }
 
@@ -88,7 +88,7 @@ body {
   background-color: #fe76b4;
   color: #fff;
   border-radius: 15px;
-  border: 2px solid #fff;
+  border: 2px solid black;
 }
 
 /* --- StartScreen Styles --- */
@@ -102,13 +102,27 @@ body {
   overflow: hidden;
 }
 
+.game-title {
+  font-size: 6rem;
+  font-weight: bold;
+  color: white;
+  text-shadow: 
+    -3px -3px 0 #000,  
+     3px -3px 0 #000,
+    -3px  3px 0 #000,
+     3px  3px 0 #000,
+     4px 4px 10px rgba(0,0,0,0.5);
+  margin-bottom: 2rem;
+  font-family: 'Arial', sans-serif;
+}
+
 .start-game-btn {
   padding: 1.2rem 2.5rem;
   font-size: 1.8rem;
   font-weight: bold;
   color: white;
   background: linear-gradient(145deg, #ff7e5f, #feb47b);
-  border: none;
+  border: 2px solid black;
   border-radius: 50px;
   cursor: pointer;
   box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
@@ -172,7 +186,7 @@ body {
   font-size: 1rem;
   background-color: #f472b6;
   color: white;
-  border: none;
+  border: 2px solid black;
   border-radius: 0.5rem;
   cursor: pointer;
 }
@@ -190,7 +204,7 @@ body {
   font-weight: bold;
   color: white;
   background-color: #f87171;
-  border: none;
+  border: 2px solid black;
   border-radius: 10px;
   cursor: pointer;
   transition: background-color 0.3s ease;
@@ -204,6 +218,7 @@ body {
   top: 20px;
   right: 20px;
   padding: 10px 20px;
+  border: 2px solid black;
   border-radius: 12px;
   background-color: #f59e0b; 
   color: white;
@@ -228,5 +243,7 @@ body {
   border-radius: 12px;
   display: inline-block;
   margin-left: 20px;
+  margin-bottom: 10px;
+  border: 2px solid black;
   box-shadow: 0 4px 10px rgba(0,0,0,0.25);
 }
